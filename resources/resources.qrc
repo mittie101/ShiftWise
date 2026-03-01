@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="styles/dark.qss">styles/dark.qss</file>
+        <file alias="migrations/migration_001.sql">../migrations/migration_001.sql</file>
+    </qresource>
+</RCC>
