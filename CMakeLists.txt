@@ -45,6 +45,10 @@ add_executable(ShiftWise WIN32
     # ── Domain utilities ───────────────────────────────────────────────────────
     src/domain/TimeUtils.h
 
+    # ── Domain scheduler ───────────────────────────────────────────────────────
+    src/domain/Scheduler.h
+    src/domain/Scheduler.cpp
+
     # ── Domain repositories ────────────────────────────────────────────────────
     src/domain/repositories/RoleRepository.h
     src/domain/repositories/RoleRepository.cpp
@@ -58,6 +62,8 @@ add_executable(ShiftWise WIN32
     src/domain/repositories/ScheduleRepository.cpp
 
     # ── UI pages ──────────────────────────────────────────────────────────────
+    src/ui/pages/RolesPage.h
+    src/ui/pages/RolesPage.cpp
     src/ui/pages/EmployeesPage.h
     src/ui/pages/EmployeesPage.cpp
     src/ui/pages/ShiftsPage.h
@@ -70,6 +76,8 @@ add_executable(ShiftWise WIN32
     src/ui/pages/SettingsPage.cpp
 
     # ── UI dialogs ────────────────────────────────────────────────────────────
+    src/ui/dialogs/RoleDialog.h
+    src/ui/dialogs/RoleDialog.cpp
     src/ui/dialogs/EmployeeDialog.h
     src/ui/dialogs/EmployeeDialog.cpp
     src/ui/dialogs/ShiftTemplateDialog.h

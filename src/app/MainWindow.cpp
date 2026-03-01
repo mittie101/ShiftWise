@@ -1,9 +1,12 @@
 #include "MainWindow.h"
+#include "ui/pages/RolesPage.h"
 #include "ui/pages/EmployeesPage.h"
 #include "ui/pages/ShiftsPage.h"
 #include "ui/pages/SchedulePage.h"
 #include "ui/pages/ReportsPage.h"
 #include "ui/pages/SettingsPage.h"
+#include "domain/Scheduler.h"
+#include "domain/repositories/ScheduleRepository.h"
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -92,6 +95,7 @@ void MainWindow::buildSidebar() {
 
     // Nav buttons
     const NavItem items[] = {
+        { "  Roles",     Page::Roles     },
         { "  Employees", Page::Employees },
         { "  Shifts",    Page::Shifts    },
         { "  Schedule",  Page::Schedule  },
@@ -177,22 +181,25 @@ void MainWindow::buildToolbar() {
 // ── Pages ─────────────────────────────────────────────────────────────────────
 
 void MainWindow::buildPages() {
-    // Page 0: Employees
+    // Page 0: Roles
+    m_stack->addWidget(new RolesPage);
+
+    // Page 1: Employees
     m_stack->addWidget(new EmployeesPage);
 
-    // Page 1: Shifts
+    // Page 2: Shifts
     m_stack->addWidget(new ShiftsPage);
 
-    // Page 2: Schedule
+    // Page 3: Schedule
     m_schedulePage = new SchedulePage;
     m_schedulePage->loadWeek(m_currentWeekStart);
     m_stack->addWidget(m_schedulePage);
 
-    // Page 3: Reports
+    // Page 4: Reports
     m_reportsPage = new ReportsPage;
     m_stack->addWidget(m_reportsPage);
 
-    // Page 4: Settings
+    // Page 5: Settings
     m_stack->addWidget(new SettingsPage);
 }
 
@@ -246,11 +253,20 @@ QString MainWindow::currentWeekStart() const {
 // These are wired to real implementations in Phase 7.
 
 void MainWindow::onGenerateClicked() {
-    statusBar()->showMessage("Generate schedule — coming in Phase 7.", 3000);
+    const int filled = Scheduler::generateWeek(m_currentWeekStart);
+    m_schedulePage->loadWeek(m_currentWeekStart);
+    m_reportsPage->loadWeek(m_currentWeekStart);
+    statusBar()->showMessage(
+        QString("Schedule generated: %1 slot(s) filled.").arg(filled), 4000);
 }
 
 void MainWindow::onClearUnlockedClicked() {
-    statusBar()->showMessage("Clear unlocked — coming in Phase 7.", 3000);
+    ScheduleRepository schedRepo;
+    const Schedule schedule = schedRepo.getOrCreate(m_currentWeekStart);
+    schedRepo.clearUnlocked(schedule.id);
+    m_schedulePage->loadWeek(m_currentWeekStart);
+    m_reportsPage->loadWeek(m_currentWeekStart);
+    statusBar()->showMessage("Unlocked assignments cleared.", 3000);
 }
 
 void MainWindow::onExportCsvClicked() {

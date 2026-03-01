@@ -11,11 +11,12 @@ class ReportsPage;
 
 // Page indices — must match order added to m_stack
 enum class Page {
-    Employees = 0,
-    Shifts    = 1,
-    Schedule  = 2,
-    Reports   = 3,
-    Settings  = 4,
+    Roles     = 0,
+    Employees = 1,
+    Shifts    = 2,
+    Schedule  = 3,
+    Reports   = 4,
+    Settings  = 5,
 };
 
 class MainWindow : public QMainWindow {
@@ -38,9 +39,9 @@ private:
     void updateWeekLabel();
     QString currentWeekStart() const;   // ISO date, always Monday
 
-    QWidget*       m_sidebar      = nullptr;
-    QStackedWidget* m_stack       = nullptr;
-    QLabel*        m_weekLabel    = nullptr;
+    QWidget*       m_sidebar       = nullptr;
+    QStackedWidget* m_stack        = nullptr;
+    QLabel*        m_weekLabel     = nullptr;
     QLabel*        m_saveIndicator = nullptr;
     QVector<QPushButton*> m_navBtns;
 
