@@ -56,6 +56,24 @@ add_executable(ShiftWise WIN32
     src/domain/repositories/ShiftTemplateRepository.cpp
     src/domain/repositories/ScheduleRepository.h
     src/domain/repositories/ScheduleRepository.cpp
+
+    # ── UI pages ──────────────────────────────────────────────────────────────
+    src/ui/pages/EmployeesPage.h
+    src/ui/pages/EmployeesPage.cpp
+    src/ui/pages/ShiftsPage.h
+    src/ui/pages/ShiftsPage.cpp
+    src/ui/pages/SchedulePage.h
+    src/ui/pages/SchedulePage.cpp
+    src/ui/pages/ReportsPage.h
+    src/ui/pages/ReportsPage.cpp
+    src/ui/pages/SettingsPage.h
+    src/ui/pages/SettingsPage.cpp
+
+    # ── UI dialogs ────────────────────────────────────────────────────────────
+    src/ui/dialogs/EmployeeDialog.h
+    src/ui/dialogs/EmployeeDialog.cpp
+    src/ui/dialogs/ShiftTemplateDialog.h
+    src/ui/dialogs/ShiftTemplateDialog.cpp
 )
 
 target_include_directories(ShiftWise PRIVATE src)

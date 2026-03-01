@@ -18,6 +18,7 @@ public:
     Schedule getOrCreate(const QString& weekStart);
     QVector<Assignment> getAssignments(int scheduleId);
     bool upsertAssignment(Assignment assignment);
+    bool removeAssignment(int assignmentId);
     bool clearUnlocked(int scheduleId);
 
 private:

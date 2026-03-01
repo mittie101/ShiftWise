@@ -6,6 +6,8 @@
 #include <QVector>
 
 class QToolBar;
+class SchedulePage;
+class ReportsPage;
 
 // Page indices — must match order added to m_stack
 enum class Page {
@@ -43,4 +45,7 @@ private:
     QVector<QPushButton*> m_navBtns;
 
     QString m_currentWeekStart;         // ISO date of displayed Monday
+
+    SchedulePage* m_schedulePage = nullptr;
+    ReportsPage*  m_reportsPage  = nullptr;
 };

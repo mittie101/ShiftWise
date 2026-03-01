@@ -1,4 +1,9 @@
 #include "MainWindow.h"
+#include "ui/pages/EmployeesPage.h"
+#include "ui/pages/ShiftsPage.h"
+#include "ui/pages/SchedulePage.h"
+#include "ui/pages/ReportsPage.h"
+#include "ui/pages/SettingsPage.h"
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -8,30 +13,6 @@
 #include <QFrame>
 #include <QDate>
 #include <QStatusBar>
-
-// ── Placeholder page widget ───────────────────────────────────────────────────
-static QWidget* makePlaceholderPage(const QString& title, const QString& subtitle) {
-    QWidget* page = new QWidget;
-    QVBoxLayout* vl = new QVBoxLayout(page);
-    vl->setAlignment(Qt::AlignCenter);
-    vl->setSpacing(8);
-
-    QLabel* titleLbl = new QLabel(title);
-    titleLbl->setObjectName("sectionTitle");
-    titleLbl->setAlignment(Qt::AlignCenter);
-    QFont f = titleLbl->font();
-    f.setPointSize(20);
-    f.setBold(true);
-    titleLbl->setFont(f);
-
-    QLabel* subLbl = new QLabel(subtitle);
-    subLbl->setObjectName("emptyState");
-    subLbl->setAlignment(Qt::AlignCenter);
-
-    vl->addWidget(titleLbl);
-    vl->addWidget(subLbl);
-    return page;
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -153,7 +134,7 @@ void MainWindow::buildToolbar() {
     addToolBar(Qt::TopToolBarArea, tb);
 
     // Week navigation
-    QPushButton* prevBtn = new QPushButton("◀");
+    QPushButton* prevBtn = new QPushButton("\xe2\x97\x80"); // ◀
     prevBtn->setObjectName("weekNavBtn");
     prevBtn->setToolTip("Previous week");
     connect(prevBtn, &QPushButton::clicked, this, &MainWindow::onPrevWeekClicked);
@@ -163,7 +144,7 @@ void MainWindow::buildToolbar() {
     m_weekLabel->setAlignment(Qt::AlignCenter);
     updateWeekLabel();
 
-    QPushButton* nextBtn = new QPushButton("▶");
+    QPushButton* nextBtn = new QPushButton("\xe2\x96\xb6"); // ▶
     nextBtn->setObjectName("weekNavBtn");
     nextBtn->setToolTip("Next week");
     connect(nextBtn, &QPushButton::clicked, this, &MainWindow::onNextWeekClicked);
@@ -174,16 +155,16 @@ void MainWindow::buildToolbar() {
     tb->addSeparator();
 
     // Action buttons
-    QPushButton* generateBtn = new QPushButton("⚡  Generate");
+    QPushButton* generateBtn = new QPushButton("\xe2\x9a\xa1  Generate"); // ⚡
     generateBtn->setObjectName("primaryBtn");
     generateBtn->setToolTip("Auto-generate schedule for this week\n(locked assignments are preserved)");
     connect(generateBtn, &QPushButton::clicked, this, &MainWindow::onGenerateClicked);
 
-    QPushButton* clearBtn = new QPushButton("✕  Clear Unlocked");
+    QPushButton* clearBtn = new QPushButton("\xe2\x9c\x95  Clear Unlocked"); // ✕
     clearBtn->setToolTip("Remove all unlocked assignments for this week");
     connect(clearBtn, &QPushButton::clicked, this, &MainWindow::onClearUnlockedClicked);
 
-    QPushButton* exportBtn = new QPushButton("↓  Export CSV");
+    QPushButton* exportBtn = new QPushButton("\xe2\x86\x93  Export CSV"); // ↓
     exportBtn->setToolTip("Export this week's schedule to CSV");
     connect(exportBtn, &QPushButton::clicked, this, &MainWindow::onExportCsvClicked);
 
@@ -196,21 +177,23 @@ void MainWindow::buildToolbar() {
 // ── Pages ─────────────────────────────────────────────────────────────────────
 
 void MainWindow::buildPages() {
-    // Phase 1: placeholder pages — replaced in Phase 5 with real views
-    m_stack->addWidget(makePlaceholderPage("Employees",
-        "Manage your employees, roles, and availability windows."));
+    // Page 0: Employees
+    m_stack->addWidget(new EmployeesPage);
 
-    m_stack->addWidget(makePlaceholderPage("Shifts",
-        "Define shift templates for each day of the week."));
+    // Page 1: Shifts
+    m_stack->addWidget(new ShiftsPage);
 
-    m_stack->addWidget(makePlaceholderPage("Schedule",
-        "Generate and manage your weekly schedule here."));
+    // Page 2: Schedule
+    m_schedulePage = new SchedulePage;
+    m_schedulePage->loadWeek(m_currentWeekStart);
+    m_stack->addWidget(m_schedulePage);
 
-    m_stack->addWidget(makePlaceholderPage("Reports",
-        "View hours, overtime risks, and fairness scores."));
+    // Page 3: Reports
+    m_reportsPage = new ReportsPage;
+    m_stack->addWidget(m_reportsPage);
 
-    m_stack->addWidget(makePlaceholderPage("Settings",
-        "Configure overtime thresholds, display preferences, and database location."));
+    // Page 4: Settings
+    m_stack->addWidget(new SettingsPage);
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -219,9 +202,12 @@ void MainWindow::navigateTo(Page page) {
     const int idx = static_cast<int>(page);
     m_stack->setCurrentIndex(idx);
 
-    for (int i = 0; i < m_navBtns.size(); ++i) {
+    for (int i = 0; i < m_navBtns.size(); ++i)
         m_navBtns[i]->setChecked(i == idx);
-    }
+
+    // Refresh data-driven pages on navigation
+    if (page == Page::Reports)
+        m_reportsPage->loadWeek(m_currentWeekStart);
 }
 
 // ── Week navigation ───────────────────────────────────────────────────────────
@@ -230,19 +216,23 @@ void MainWindow::onPrevWeekClicked() {
     QDate d = QDate::fromString(m_currentWeekStart, Qt::ISODate).addDays(-7);
     m_currentWeekStart = d.toString(Qt::ISODate);
     updateWeekLabel();
+    m_schedulePage->loadWeek(m_currentWeekStart);
+    m_reportsPage->loadWeek(m_currentWeekStart);
 }
 
 void MainWindow::onNextWeekClicked() {
     QDate d = QDate::fromString(m_currentWeekStart, Qt::ISODate).addDays(7);
     m_currentWeekStart = d.toString(Qt::ISODate);
     updateWeekLabel();
+    m_schedulePage->loadWeek(m_currentWeekStart);
+    m_reportsPage->loadWeek(m_currentWeekStart);
 }
 
 void MainWindow::updateWeekLabel() {
     QDate weekStart = QDate::fromString(m_currentWeekStart, Qt::ISODate);
     QDate weekEnd   = weekStart.addDays(6);
     m_weekLabel->setText(
-        QString("Week of %1 – %2")
+        QString("Week of %1 \xe2\x80\x93 %2")  // "–" en-dash
             .arg(weekStart.toString("d MMM"))
             .arg(weekEnd.toString("d MMM yyyy"))
     );

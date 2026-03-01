@@ -173,6 +173,19 @@ bool ScheduleRepository::upsertAssignment(Assignment assignment)
     return true;
 }
 
+bool ScheduleRepository::removeAssignment(int assignmentId)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery q(db);
+    q.prepare(QStringLiteral("DELETE FROM assignments WHERE id = :id"));
+    q.bindValue(QStringLiteral(":id"), assignmentId);
+    if (!q.exec()) {
+        Logger::error(QStringLiteral("ScheduleRepository::removeAssignment: ") + q.lastError().text());
+        return false;
+    }
+    return true;
+}
+
 bool ScheduleRepository::clearUnlocked(int scheduleId)
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
