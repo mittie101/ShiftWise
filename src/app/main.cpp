@@ -5,6 +5,7 @@
 #include "infra/MigrationRunner.h"
 
 #include <QApplication>
+#include <QIcon>
 #include <QStandardPaths>
 #include <QDir>
 #include <QFile>
@@ -14,7 +15,15 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     app.setApplicationName("ShiftWise");
     app.setApplicationVersion(SHIFTWISE_VERSION);
-    app.setOrganizationName("ShiftWise");
+    app.setOrganizationName("Walking Fish Software");
+
+    // ── Application icon (all sizes for crisp rendering at every scale) ───────
+    QIcon appIcon;
+    appIcon.addFile(":/icons/shiftwise_16.ico");
+    appIcon.addFile(":/icons/shiftwise_32.ico");
+    appIcon.addFile(":/icons/shiftwise_48.ico");
+    appIcon.addFile(":/icons/shiftwise_256.ico");
+    app.setWindowIcon(appIcon);
 
     // ── Ensure app data directory exists ─────────────────────────────────────
     const QString dataDir = QStandardPaths::writableLocation(
@@ -26,17 +35,21 @@ int main(int argc, char* argv[]) {
     Logger::info(QString("ShiftWise v%1 starting").arg(SHIFTWISE_VERSION));
     Logger::info(QString("Data directory: %1").arg(dataDir));
 
-    // ── Stylesheet ────────────────────────────────────────────────────────────
-    QFile qss(":/styles/dark.qss");
-    if (qss.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        app.setStyleSheet(QString::fromUtf8(qss.readAll()));
-        Logger::info("Dark stylesheet loaded.");
-    } else {
-        Logger::warning("Could not load dark.qss from resources.");
-    }
-
     // ── AppSettings ───────────────────────────────────────────────────────────
     AppSettings& settings = AppSettings::instance();
+
+    // ── Stylesheet ────────────────────────────────────────────────────────────
+    const QString qssPath = settings.darkTheme()
+        ? QStringLiteral(":/styles/dark.qss")
+        : QStringLiteral(":/styles/light.qss");
+    QFile qss(qssPath);
+    if (qss.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        app.setStyleSheet(QString::fromUtf8(qss.readAll()));
+        Logger::info(QString("%1 stylesheet loaded.").arg(settings.darkTheme() ? "Dark" : "Light"));
+    } else {
+        Logger::warning(QString("Could not load %1 from resources.").arg(qssPath));
+    }
+
     // Ensure DB path is set (uses default in AppDataLocation if not overridden)
     const QString dbPath = settings.databasePath();
     Logger::info(QString("Database path: %1").arg(dbPath));

@@ -28,8 +28,17 @@ public slots:
     void onGenerateClicked();
     void onClearUnlockedClicked();
     void onExportCsvClicked();
+    void onPrintClicked();
     void onPrevWeekClicked();
     void onNextWeekClicked();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
+private slots:
+    void onScheduleSaved();
+    void onAboutClicked();
+    void onTodayClicked();
 
 private:
     void buildSidebar();

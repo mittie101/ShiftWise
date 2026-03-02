@@ -16,7 +16,12 @@ add_executable(ShiftWiseTests
     test_main.cpp
 
     ../src/app/Logger.cpp
+    ../src/domain/Scheduler.cpp
     ../src/domain/repositories/RoleRepository.cpp
+    ../src/domain/repositories/EmployeeRepository.cpp
+    ../src/domain/repositories/AvailabilityRepository.cpp
+    ../src/domain/repositories/ShiftTemplateRepository.cpp
+    ../src/domain/repositories/ScheduleRepository.cpp
 )
 
 target_include_directories(ShiftWiseTests PRIVATE ../src)

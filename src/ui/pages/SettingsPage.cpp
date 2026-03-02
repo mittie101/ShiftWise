@@ -6,9 +6,12 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QLabel>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QApplication>
+#include <QFile>
 
 SettingsPage::SettingsPage(QWidget* parent)
     : QWidget(parent)
@@ -44,6 +47,13 @@ SettingsPage::SettingsPage(QWidget* parent)
     m_darkThemeCheck = new QCheckBox("Enable dark theme");
     form->addRow("Theme:", m_darkThemeCheck);
 
+    // Work week start day (display-only: affects calendar column order)
+    m_weekStartCombo = new QComboBox;
+    const char* kDayNames[] = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+    for (int i = 0; i < 7; ++i)
+        m_weekStartCombo->addItem(QString::fromLatin1(kDayNames[i]), i);
+    form->addRow("Week starts on:", m_weekStartCombo);
+
     outer->addLayout(form);
 
     auto* saveBtn = new QPushButton("Save");
@@ -60,6 +70,7 @@ SettingsPage::SettingsPage(QWidget* parent)
     m_overtimeSpin->setValue(s.overtimeThresholdMinutes() / 60);
     m_use24hCheck->setChecked(s.use24HourFormat());
     m_darkThemeCheck->setChecked(s.darkTheme());
+    m_weekStartCombo->setCurrentIndex(s.workWeekStartDay());
 
     connect(browseBtn, &QPushButton::clicked, this, &SettingsPage::onBrowseClicked);
     connect(saveBtn,   &QPushButton::clicked, this, &SettingsPage::onSaveClicked);
@@ -79,9 +90,26 @@ void SettingsPage::onBrowseClicked()
 void SettingsPage::onSaveClicked()
 {
     AppSettings& s = AppSettings::instance();
-    s.setDatabasePath(m_dbPathEdit->text().trimmed());
+    const QString oldDbPath = s.databasePath();
+    const QString newDbPath = m_dbPathEdit->text().trimmed();
+
+    s.setDatabasePath(newDbPath);
     s.setOvertimeThresholdMinutes(m_overtimeSpin->value() * 60);
     s.setUse24HourFormat(m_use24hCheck->isChecked());
     s.setDarkTheme(m_darkThemeCheck->isChecked());
-    m_statusLabel->setText("Settings saved.");
+    s.setWorkWeekStartDay(m_weekStartCombo->currentData().toInt());
+
+    // Apply theme immediately
+    const QString qssPath = m_darkThemeCheck->isChecked()
+        ? QStringLiteral(":/styles/dark.qss")
+        : QStringLiteral(":/styles/light.qss");
+    QFile qss(qssPath);
+    if (qss.open(QIODevice::ReadOnly | QIODevice::Text))
+        qApp->setStyleSheet(QString::fromUtf8(qss.readAll()));
+
+    if (newDbPath != oldDbPath)
+        m_statusLabel->setText(
+            "Database path changed \xe2\x80\x94 restart the application to take effect.");
+    else
+        m_statusLabel->setText("Settings saved.");
 }

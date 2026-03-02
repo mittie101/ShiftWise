@@ -1,6 +1,7 @@
 #include "RolesPage.h"
 #include "ui/dialogs/RoleDialog.h"
 #include "domain/repositories/RoleRepository.h"
+#include "domain/repositories/ShiftTemplateRepository.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QTableWidget>
@@ -109,18 +110,28 @@ void RolesPage::onDeleteClicked()
     const int row = m_table->currentRow();
     if (row < 0 || row >= m_ids.size()) return;
 
+    // Count shift templates that still use this role
+    ShiftTemplateRepository stRepo;
+    int shiftCount = 0;
+    for (const ShiftTemplate& st : stRepo.getAll())
+        if (st.roleId == m_ids[row]) ++shiftCount;
+
+    if (shiftCount > 0) {
+        QMessageBox::warning(this, "Cannot Delete Role",
+            QString("This role is used by %1 shift template(s).\n\n"
+                    "Reassign or delete those shifts before removing this role.")
+                .arg(shiftCount));
+        return;
+    }
+
     const auto reply = QMessageBox::question(
         this, "Delete Role",
-        "Are you sure you want to delete this role?\n"
-        "This will also remove it from all employees and shift templates.",
+        "Are you sure you want to delete this role?",
         QMessageBox::Yes | QMessageBox::No);
     if (reply != QMessageBox::Yes) return;
 
     RoleRepository repo;
-    if (!repo.remove(m_ids[row]))
-        QMessageBox::warning(this, "Cannot Delete",
-            "Cannot delete: role is referenced by a shift template.");
-
+    repo.remove(m_ids[row]);
     refresh();
 }
 

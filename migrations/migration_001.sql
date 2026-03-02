@@ -9,8 +9,6 @@ CREATE TABLE IF NOT EXISTS schema_version (
     version INTEGER PRIMARY KEY
 );
 
-INSERT OR IGNORE INTO schema_version(version) VALUES (1);
-
 CREATE TABLE IF NOT EXISTS roles (
     id        INTEGER PRIMARY KEY,
     name      TEXT    NOT NULL UNIQUE,
@@ -36,7 +34,7 @@ CREATE TABLE IF NOT EXISTS availability (
     id          INTEGER PRIMARY KEY,
     employeeId  INTEGER NOT NULL,
     dayOfWeek   INTEGER NOT NULL,  -- 0=Mon 1=Tue ... 6=Sun
-    startMinute INTEGER NOT NULL,  -- minutes from midnight; endMinute > startMinute enforced by app (v1: no midnight crossing)
+    startMinute INTEGER NOT NULL,  -- minutes from midnight (endMinute > startMinute enforced by app)
     endMinute   INTEGER NOT NULL,
     FOREIGN KEY (employeeId) REFERENCES employees(id) ON DELETE CASCADE
 );
@@ -54,7 +52,7 @@ CREATE TABLE IF NOT EXISTS shift_templates (
 
 CREATE TABLE IF NOT EXISTS schedules (
     id         INTEGER PRIMARY KEY,
-    weekStart  TEXT    NOT NULL,  -- ISO date of Monday e.g. "2025-01-06"; always Monday
+    weekStart  TEXT    NOT NULL,  -- ISO date of Monday e.g. "2025-01-06" (always Monday)
     createdAt  TEXT,
     UNIQUE (weekStart)
 );

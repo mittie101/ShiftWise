@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QHash>
+#include <algorithm>
 
 ShiftsPage::ShiftsPage(QWidget* parent)
     : QWidget(parent)
@@ -80,7 +81,13 @@ void ShiftsPage::refresh()
 
     const bool use24h = AppSettings::instance().use24HourFormat();
 
-    for (const ShiftTemplate& st : stRepo.getAll()) {
+    QVector<ShiftTemplate> shifts = stRepo.getAll();
+    std::sort(shifts.begin(), shifts.end(), [](const ShiftTemplate& a, const ShiftTemplate& b) {
+        if (a.dayOfWeek != b.dayOfWeek) return a.dayOfWeek < b.dayOfWeek;
+        return a.startMinute < b.startMinute;
+    });
+
+    for (const ShiftTemplate& st : shifts) {
         const int row = m_table->rowCount();
         m_table->insertRow(row);
         m_ids.append(st.id);

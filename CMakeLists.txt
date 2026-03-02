@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(ShiftWise VERSION 0.1.0 LANGUAGES CXX)
+project(ShiftWise VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,7 +8,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
+# Suppress Qt6's optional Vulkan search (not used by this app)
+set(CMAKE_DISABLE_FIND_PACKAGE_WrapVulkanHeaders TRUE)
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Sql PrintSupport)
 
 # ── Tests ────────────────────────────────────────────────────────────────────
 add_subdirectory(tests)
@@ -89,6 +92,7 @@ target_include_directories(ShiftWise PRIVATE src)
 target_link_libraries(ShiftWise PRIVATE
     Qt6::Widgets
     Qt6::Sql
+    Qt6::PrintSupport
 )
 
 target_compile_definitions(ShiftWise PRIVATE

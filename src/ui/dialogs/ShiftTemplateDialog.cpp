@@ -100,6 +100,15 @@ void ShiftTemplateDialog::onAccepted()
         return;
     }
 
+    const int startMin = m_startEdit->time().hour() * 60 + m_startEdit->time().minute();
+    const int endMin   = m_endEdit->time().hour()   * 60 + m_endEdit->time().minute();
+    if (startMin == endMin) {
+        QMessageBox::warning(this, "Validation",
+            "Start and end times cannot be the same.\n"
+            "A shift must have a non-zero duration.");
+        return;
+    }
+
     m_result.name          = m_nameEdit->text().trimmed();
     m_result.dayOfWeek     = m_dayCombo->currentIndex();
     m_result.startMinute   = m_startEdit->time().hour() * 60 + m_startEdit->time().minute();

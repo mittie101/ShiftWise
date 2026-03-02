@@ -3,6 +3,7 @@
 #include <QVector>
 
 class QTableWidget;
+class QLineEdit;
 
 class EmployeesPage : public QWidget {
     Q_OBJECT
@@ -11,6 +12,9 @@ public:
 
     void refresh();
 
+private:
+    void applyFilter();
+
 private slots:
     void onAddClicked();
     void onEditClicked();
@@ -18,6 +22,7 @@ private slots:
     void onCellDoubleClicked(int row, int col);
 
 private:
-    QTableWidget* m_table = nullptr;
+    QLineEdit*    m_searchEdit = nullptr;
+    QTableWidget* m_table      = nullptr;
     QVector<int>  m_ids;
 };

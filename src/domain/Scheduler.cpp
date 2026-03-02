@@ -72,6 +72,27 @@ int Scheduler::generateWeek(const QString& weekStart, const QString& connectionN
             assignedPerShift[a.shiftTemplateId].insert(a.employeeId);
     }
 
+    // Track assigned time windows per employee for cross-shift conflict detection
+    // empId -> list of (dayOfWeek, startMinute, endMinute)
+    struct TimeWindow { int day, start, end; };
+    QHash<int, QVector<TimeWindow>> empWindows;
+    for (const Assignment& a : existing) {
+        if (!a.isLocked) continue;
+        const auto it = shiftMap.constFind(a.shiftTemplateId);
+        if (it == shiftMap.constEnd()) continue;
+        const ShiftTemplate& st = it.value();
+        empWindows[a.employeeId].append({st.dayOfWeek, st.startMinute, st.endMinute});
+    }
+
+    // Helper: returns true if two time ranges [s1,e1) and [s2,e2) overlap on the same day.
+    // For simplicity, midnight-crossing shifts (end < start) are treated as ending at midnight.
+    auto overlaps = [](const TimeWindow& a, const TimeWindow& b) -> bool {
+        if (a.day != b.day) return false;
+        const int s1 = a.start, e1 = (a.end > a.start) ? a.end : 1440;
+        const int s2 = b.start, e2 = (b.end > b.start) ? b.end : 1440;
+        return s1 < e2 && s2 < e1;
+    };
+
     // ── Generate ──────────────────────────────────────────────────────────────
     int filled = 0;
 
@@ -124,6 +145,14 @@ int Scheduler::generateWeek(const QString& weekStart, const QString& connectionN
                 if (scheduledMinutes.value(e.id) + dur > e.maxWeeklyMinutes)
                     continue;
 
+                // Must not overlap with any shift already assigned to this employee this week
+                const TimeWindow newWin{st.dayOfWeek, st.startMinute, st.endMinute};
+                bool conflict = false;
+                for (const TimeWindow& w : empWindows.value(e.id)) {
+                    if (overlaps(w, newWin)) { conflict = true; break; }
+                }
+                if (conflict) continue;
+
                 eligible.append(&e);
             }
 
@@ -158,6 +187,7 @@ int Scheduler::generateWeek(const QString& weekStart, const QString& connectionN
             // Update running state
             scheduledMinutes[best->id] += dur;
             assignedPerShift[st.id].insert(best->id);
+            empWindows[best->id].append({st.dayOfWeek, st.startMinute, st.endMinute});
             ++filled;
         }
     }

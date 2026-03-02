@@ -1,6 +1,11 @@
 <RCC>
     <qresource prefix="/">
         <file alias="styles/dark.qss">styles/dark.qss</file>
+        <file alias="styles/light.qss">styles/light.qss</file>
         <file alias="migrations/migration_001.sql">../migrations/migration_001.sql</file>
+        <file alias="icons/shiftwise_256.ico">icons/shiftwise.ico</file>
+        <file alias="icons/shiftwise_48.ico">icons/shiftwise2.ico</file>
+        <file alias="icons/shiftwise_32.ico">icons/shiftwise3.ico</file>
+        <file alias="icons/shiftwise_16.ico">icons/shiftwise4.ico</file>
     </qresource>
 </RCC>

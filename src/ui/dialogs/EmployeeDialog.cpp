@@ -63,6 +63,9 @@ void EmployeeDialog::init()
 
     m_prioritySpin = new QSpinBox;
     m_prioritySpin->setRange(0, 10);
+    m_prioritySpin->setToolTip(
+        "Higher priority employees are scheduled first (0 = lowest, 10 = highest).\n"
+        "Among equal priority, those with fewer scheduled hours are preferred.");
     genForm->addRow("Priority:", m_prioritySpin);
 
     mainLayout->addWidget(genGroup);
@@ -155,6 +158,18 @@ void EmployeeDialog::onAccepted()
         return;
     }
 
+    // Duplicate name check (case-insensitive, skip self in edit mode)
+    const QString trimmedName = m_nameEdit->text().trimmed();
+    EmployeeRepository checkRepo;
+    for (const Employee& e : checkRepo.getAll()) {
+        if (m_editMode && e.id == m_employee.id) continue;
+        if (e.name.compare(trimmedName, Qt::CaseInsensitive) == 0) {
+            QMessageBox::warning(this, "Validation",
+                QString("An employee named \"%1\" already exists.").arg(trimmedName));
+            return;
+        }
+    }
+
     m_employee.name             = m_nameEdit->text().trimmed();
     m_employee.maxWeeklyMinutes = m_maxHoursSpin->value() * 60;
     m_employee.priority         = m_prioritySpin->value();
@@ -181,6 +196,20 @@ void EmployeeDialog::onAccepted()
             roleIds.append(item->data(Qt::UserRole).toInt());
     }
     empRepo.setRolesForEmployee(m_savedId, roleIds);
+
+    // Validate availability windows (start must differ from end)
+    for (int d = 0; d < 7; ++d) {
+        if (!m_availCheck[d]->isChecked()) continue;
+        const int s = m_availStart[d]->time().hour() * 60 + m_availStart[d]->time().minute();
+        const int e = m_availEnd[d]->time().hour()   * 60 + m_availEnd[d]->time().minute();
+        if (s == e) {
+            QMessageBox::warning(this, "Validation",
+                QString("%1 availability has the same start and end time.\n"
+                        "Please set a valid time range.")
+                    .arg(TimeUtils::dayOfWeekName(d)));
+            return;
+        }
+    }
 
     // Collect enabled availability rows
     QVector<Availability> availList;

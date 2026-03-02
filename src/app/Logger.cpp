@@ -2,11 +2,11 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
-#include <QMutex>
+#include <QRecursiveMutex>
 #include <QMutexLocker>
 
-static QString   g_logPath;
-static QMutex    g_mutex;
+static QString         g_logPath;
+static QRecursiveMutex g_mutex;
 
 void Logger::init(const QString& logFilePath) {
     QMutexLocker lock(&g_mutex);
